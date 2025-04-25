@@ -49,9 +49,11 @@ class _BottomnavState extends State<Bottomnav> {
           setState(() {
             currentIndex = index;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
+          if(index !=0) {
+            ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('This feature is currently disabled.')),
           );
+          }
         },
         items: [
           Icon(Icons.home, color: Colors.white,size: 20,),
