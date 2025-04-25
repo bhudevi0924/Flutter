@@ -74,6 +74,7 @@ class _DetailPageState extends State<DetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: Container(
+      height: MediaQuery.of(context).size.height,
       margin: EdgeInsets.only(top: 15, left: 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

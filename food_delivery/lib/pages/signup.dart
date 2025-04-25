@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:food_delivery/pages/bottomnav.dart';
 import 'package:food_delivery/pages/home.dart';
 import 'package:food_delivery/pages/login.dart';
 import 'package:food_delivery/service/database_methods.dart';
@@ -69,7 +70,7 @@ class _SignUpState extends State<SignUp> {
           backgroundColor: Colors.green,
             content: Text("Registered Successfully.",style: TextStyle(fontSize: 18),)
             ));
-        Navigator.push(context, MaterialPageRoute(builder: (context)=> Home()));
+        Navigator.push(context, MaterialPageRoute(builder: (context)=> Bottomnav()));
       } on FirebaseAuthException catch(e) {
           Navigator.pop(context);
         if(e.code=="weak-password") {
