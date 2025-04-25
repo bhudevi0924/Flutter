@@ -15,37 +15,62 @@ class LogIn extends StatefulWidget {
 class _LogInState extends State<LogIn> {
 
   String name="", email="", password="";
+  bool isButtonEnabled=false;
   TextEditingController nameController = new TextEditingController();
   TextEditingController emailController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
 
+  void _checkIfInputIsValid() {
+    setState(() {
+      isButtonEnabled = emailController.text.trim() !="" && passwordController.text.trim()!="";
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    emailController.addListener(_checkIfInputIsValid);
+    passwordController.addListener(_checkIfInputIsValid);
+  }
+
   userLogin() async{
-    print("login");
-     try{
-      await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.green,
-          content: 
-          Text("Loged in Successfully!", style: TextStyle(fontSize: 18),)
-      ));
-      Navigator.push(context, MaterialPageRoute(builder: (context)=> Bottomnav()));
-     } on FirebaseAuthException catch(e) {
-      print("EXCEPTION $e **** ${e.code} ${e.credential} ${e.message}");
-      if(e.code=="invalid-credential") {
+      try{
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return Center(
+                child: CircularProgressIndicator(),
+              );
+          },
+        );
+
+        await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: Colors.green,
+            content: 
+            Text("Loged in Successfully!", style: TextStyle(fontSize: 18),)
+        ));
+        Navigator.push(context, MaterialPageRoute(builder: (context)=> Bottomnav()));
+      } on FirebaseAuthException catch(e) {
+        Navigator.pop(context);
+        if(e.code=="invalid-credential") {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: Colors.red,
+            content: 
+            Text("Invalid email or password", style: TextStyle(fontSize: 18),)
+          ));
+        }
+      } catch(e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.red,
           content: 
-          Text("Invalid email or password", style: TextStyle(fontSize: 18),)
-        ));
+            Text("Error! $e", style: TextStyle(fontSize: 18),)
+          ));
       }
-     } catch(e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        backgroundColor: Colors.red,
-        content: 
-          Text("Error! $e", style: TextStyle(fontSize: 18),)
-        ));
-     }
-  }
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -120,17 +145,15 @@ class _LogInState extends State<LogIn> {
                             child: Container(
                               width: 150,
                               height: 50,
-                              decoration: BoxDecoration(color: AppWidget.primaryColor,borderRadius: BorderRadius.circular(20)),
+                              decoration: BoxDecoration(color: isButtonEnabled? AppWidget.primaryColor:Colors.grey,borderRadius: BorderRadius.circular(20)),
                               child: GestureDetector(
-                                  onTap: () {
-                                    if(emailController.text!="" && passwordController.text!="") {
+                                  onTap: isButtonEnabled? () {
                                       setState(() {
-                                        email=emailController.text;
-                                        password=passwordController.text;
+                                        email=emailController.text.trim();
+                                        password=passwordController.text.trim();
                                       });
                                       userLogin();
-                                    }
-                                  },
+                                  }: null,
                                   child: Center(
                                     child: Text("Log In",style: AppWidget.boldTextFieldStyles(),)
                                   )

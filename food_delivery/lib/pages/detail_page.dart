@@ -1,9 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:food_delivery/service/database_methods.dart';
+import 'package:food_delivery/service/shared_pref.dart';
 import 'package:food_delivery/service/widget_support.dart';
 import 'package:http/http.dart' as http;
+import 'package:random_string/random_string.dart';
 
 class DetailPage extends StatefulWidget {
 
@@ -19,13 +19,58 @@ class _DetailPageState extends State<DetailPage> {
 
   int quantity=1;
   int totalPrice=0;
+  String? userName,id,email;
   
+  getSharedPrefs() async {
+    userName = await SharedPref().getUserName();
+    id = await SharedPref().getUserId();
+    email = await SharedPref().getUserEmail();
+    
+    setState(() {
+      
+    });
+  }
+
   @override
   void initState() {
     totalPrice=int.parse(widget.price);
+    getSharedPrefs();
     // TODO: implement initState
     super.initState();
   }
+
+  handleorder() async{
+    String orderId= randomAlphaNumeric(10);
+    Map<String, dynamic> userOrderMap ={
+      "Name": userName,
+      "Id": id,
+      "Email": email,
+      "Quantity": quantity,
+      "TotalPrice": totalPrice,
+      "OrderId": orderId,
+      "FoodName": widget.name,
+      "FoodImage": widget.image,
+      "Status": "Pending",
+    };
+    try{
+      await DatabaseMethods().addUserOrderDetails(userOrderMap, id!, orderId);
+      await DatabaseMethods().addAdminOrderDetails(userOrderMap, orderId);
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.green,
+          content: Text("Order Placed Successfully.",style: TextStyle(fontSize: 18),)
+        )
+      );
+    } catch (e) {
+      print("Error $e");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.red,
+          content: Text("Something went wrong.",style: TextStyle(fontSize: 18),)
+        )
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: Container(
@@ -113,14 +158,17 @@ class _DetailPageState extends State<DetailPage> {
             ),
           ),
           SizedBox(width: 60,),
-          Material(
-            elevation: 3.0,
-            borderRadius: BorderRadius.circular(15),
-            child: Container(
-              height: 60,
-              width: 150,
-              decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(15)),
-              child: Center(child: Text("Order Now", style: TextStyle(color: Colors.white, fontSize: 20),)),
+          GestureDetector(
+            onTap: () => handleorder(),
+            child: Material(
+              elevation: 3.0,
+              borderRadius: BorderRadius.circular(15),
+              child: Container(
+                height: 60,
+                width: 150,
+                decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(15)),
+                child: Center(child: Text("Order Now", style: TextStyle(color: Colors.white, fontSize: 20),)),
+              ),
             ),
           )
         ],)

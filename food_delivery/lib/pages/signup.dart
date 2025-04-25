@@ -17,31 +17,61 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   
   String email="", name="", password="";
+  bool isButtonEnabled=false;
   TextEditingController nameController= new TextEditingController();
   TextEditingController emailController= new TextEditingController();
   TextEditingController passwordController= new TextEditingController();
+
+  void _checkIfInputIsValid() {
+    setState(() {
+      isButtonEnabled = nameController.text.trim()!="" && emailController.text.trim() !="" && passwordController.text.trim()!="";
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    nameController.addListener(_checkIfInputIsValid);
+    emailController.addListener(_checkIfInputIsValid);
+    passwordController.addListener(_checkIfInputIsValid);
+  }
+
 
   registration() async{
     print("called");
     if(password != null && name!="" && email!="") {
       try{
+         showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            },
+          );
+
         UserCredential userCredential= await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
         String id = randomAlpha(8);
         Map<String, dynamic> userInfoMap={
-          "Name":nameController.text,
-          "Email":emailController.text,
+          "Name":nameController.text.trim(),
+          "Email":emailController.text.trim(),
           "Id": id,
         };
         await SharedPref().saveUserEmail(email);
         await SharedPref().saveUserName(name);
+        await SharedPref().saveUserId(id);
         await DatabaseMethods().addUserDetails(userInfoMap, id);
+
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.green,
             content: Text("Registered Successfully.",style: TextStyle(fontSize: 18),)
             ));
         Navigator.push(context, MaterialPageRoute(builder: (context)=> Home()));
       } on FirebaseAuthException catch(e) {
-        print("EXCEPTION $e ** ${e.code}");
+          Navigator.pop(context);
         if(e.code=="weak-password") {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             backgroundColor: AppWidget.primaryColor,
@@ -60,6 +90,7 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
@@ -88,7 +119,7 @@ class _SignUpState extends State<SignUp> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 20,),
+                        SizedBox(height: 10,),
                         Center(
                             child: Text("SignUp", style: AppWidget.headlineTextStyles(),)
                         ),
@@ -105,7 +136,7 @@ class _SignUpState extends State<SignUp> {
                           decoration: InputDecoration(border: InputBorder.none, hintText: "Enter Name", prefixIcon: Icon(Icons.person_outlined),contentPadding: EdgeInsets.only(top: 12)),
                           ),
                         ),
-                      SizedBox(height: 15,),
+                      SizedBox(height: 10,),
                         Text("Email", style: AppWidget.signupTextFieldStyles(),),
                         SizedBox(height: 5.0,),
                         Container(
@@ -117,7 +148,7 @@ class _SignUpState extends State<SignUp> {
                           decoration: InputDecoration(border: InputBorder.none, hintText: "Enter Email", prefixIcon: Icon(Icons.email_outlined),contentPadding: EdgeInsets.only(top: 12)),
                           ),
                         ),
-                        SizedBox(height: 15,),
+                        SizedBox(height: 10,),
                         Text("Password", style: AppWidget.signupTextFieldStyles(),),
                         SizedBox(height: 5.0,),
                         Container(
@@ -125,34 +156,35 @@ class _SignUpState extends State<SignUp> {
                             color: Color(0xFFececf8), borderRadius: BorderRadius.circular(10)
                           ),
                           child: TextField(
+                            obscureText: true,
                             controller: passwordController,
                           decoration: InputDecoration(border: InputBorder.none, hintText: "Enter Password", prefixIcon: Icon(Icons.password_outlined),contentPadding: EdgeInsets.only(top: 12)),
                           ),
                         ),
-                        SizedBox(height: 30,),
+                        SizedBox(height: 20,),
                         Center(
                           child: Container(
                             width: 150,
                             height: 50,
-                            decoration: BoxDecoration(color: AppWidget.primaryColor,borderRadius: BorderRadius.circular(20)),
+                            decoration: BoxDecoration(color: isButtonEnabled? AppWidget.primaryColor: Colors.grey,borderRadius: BorderRadius.circular(20)),
                             child: GestureDetector(
-                              onTap: (){
+                              onTap: isButtonEnabled ? () {
                                 if(nameController.text!="" && emailController.text!="" && passwordController.text!=""){
-                              setState(() {
-                                name=nameController.text;
-                                email=emailController.text;
-                                password=passwordController.text;
-                              });
-                              registration();
-                            }
-                              },
+                                  setState(() {
+                                    name=nameController.text;
+                                    email=emailController.text;
+                                    password=passwordController.text;
+                                  });
+                                  registration();
+                                }
+                              }:null,
                               child: Center(
                                 child: Text("Sign Up",style: AppWidget.boldTextFieldStyles(),)
                               )
                             ),
                           ),
                         ),
-                        SizedBox(height: 20,),
+                        SizedBox(height: 10,),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
