@@ -1,0 +1,136 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # 1. Job to set up Flutter environment and run tests
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test
+
+  # 2. Job to build Android APK and AppBundle (Release)
+  build_android:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Build APK for Android
+        run: flutter build apk --release
+
+      - name: Build AppBundle for Android
+        run: flutter build appbundle --release
+
+      - name: Upload APK and AppBundle
+        uses: actions/upload-artifact@v2
+        with:
+          name: android-builds
+          path: build/app/outputs/flutter-apk/app-release.apk,build/app/outputs/bundle/release/app-release.aab
+
+  # 3. Job to build iOS app (release)
+  build_ios:
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+
+      - name: Install CocoaPods Dependencies
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Build iOS Release
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload iOS Build
+        uses: actions/upload-artifact@v2
+        with:
+          name: ios-build
+          path: build/ios/iphoneos/*.ipa
+
+  # 4. Job to deploy to different environments
+  deploy_dev:
+    needs: build_android
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Deploy to Dev Environment (Android & iOS)
+        run: |
+          echo "Deploying to Dev Environment"
+          # Add Firebase App Distribution or Google Play deployment for Android
+          # Add TestFlight or similar for iOS deployment
+
+  deploy_qa:
+    needs: build_android
+    runs-on: ubuntu-latest
+    environment:
+      name: qa
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Deploy to QA Environment
+        run: |
+          echo "Deploying to QA Environment"
+          # Add deployment scripts for Android/iOS (e.g., Firebase, Google Play, TestFlight)
+
+  deploy_uat:
+    needs: build_android
+    runs-on: ubuntu-latest
+    environment:
+      name: uat
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Deploy to UAT Environment
+        run: |
+          echo "Deploying to UAT Environment"
+          # Add deployment scripts
+
+  deploy_prod:
+    needs: build_android
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Deploy to Production
+        run: |
+          echo "Deploying to Production Environment"
+          # Add production deployment script for Android and iOS
+
