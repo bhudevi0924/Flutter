@@ -1,0 +1,45 @@
+name: Flutter Multi-Platform Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        platform: [android, web, linux]
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build for ${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" == "android" ]; then
+            flutter build apk --release
+          elif [ "${{ matrix.platform }}" == "web" ]; then
+            flutter build web --release
+          elif [ "${{ matrix.platform }}" == "linux" ]; then
+            flutter build linux --release
+          fi
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-${{ matrix.platform }}-build
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+            build/web/
+            build/linux/
