@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery/pages/bottomnav.dart';
-import 'package:food_delivery/pages/home.dart';
 import 'package:food_delivery/pages/login.dart';
 import 'package:food_delivery/service/database_methods.dart';
 import 'package:food_delivery/service/shared_pref.dart';
@@ -18,7 +17,7 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   
   String email="", name="", password="";
-  bool isButtonEnabled=false;
+  bool isButtonEnabled=false, obscureText=true;
   TextEditingController nameController= new TextEditingController();
   TextEditingController emailController= new TextEditingController();
   TextEditingController passwordController= new TextEditingController();
@@ -41,7 +40,7 @@ class _SignUpState extends State<SignUp> {
 
   registration() async{
     print("called");
-    if(password != null && name!="" && email!="") {
+    if(password != "" && name!="" && email!="") {
       try{
          showDialog(
             context: context,
@@ -53,7 +52,7 @@ class _SignUpState extends State<SignUp> {
             },
           );
 
-        UserCredential userCredential= await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
         String id = randomAlpha(8);
         Map<String, dynamic> userInfoMap={
           "Name":nameController.text.trim(),
@@ -157,9 +156,16 @@ class _SignUpState extends State<SignUp> {
                             color: Color(0xFFececf8), borderRadius: BorderRadius.circular(10)
                           ),
                           child: TextField(
-                            obscureText: true,
+                            obscureText: obscureText,
                             controller: passwordController,
-                          decoration: InputDecoration(border: InputBorder.none, hintText: "Enter Password", prefixIcon: Icon(Icons.password_outlined),contentPadding: EdgeInsets.only(top: 12)),
+                          decoration: 
+                          InputDecoration(
+                            border: InputBorder.none, hintText: "Enter Password", 
+                            prefixIcon: Icon(Icons.password_outlined),
+                            suffixIcon: IconButton(onPressed: ()=>{setState(() {
+                              obscureText= ! obscureText;
+                            })}, icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility)),
+                            contentPadding: EdgeInsets.only(top: 12)),
                           ),
                         ),
                         SizedBox(height: 20,),

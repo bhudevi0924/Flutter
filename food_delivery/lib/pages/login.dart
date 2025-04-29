@@ -15,7 +15,7 @@ class LogIn extends StatefulWidget {
 class _LogInState extends State<LogIn> {
 
   String name="", email="", password="";
-  bool isButtonEnabled=false;
+  bool isButtonEnabled=false, obscureText=true;
   TextEditingController nameController = new TextEditingController();
   TextEditingController emailController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
@@ -64,6 +64,7 @@ class _LogInState extends State<LogIn> {
           ));
         }
       } catch(e) {
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.red,
           content: 
@@ -117,6 +118,7 @@ class _LogInState extends State<LogIn> {
                               color: Color(0xFFececf8), borderRadius: BorderRadius.circular(10)
                             ),
                             child: TextField(
+                              autofocus: true,
                               controller: emailController,
                             decoration: InputDecoration(border: InputBorder.none, hintText: "Enter Email", prefixIcon: Icon(Icons.email_outlined),contentPadding: EdgeInsets.only(top: 12)),
                             ),
@@ -129,9 +131,17 @@ class _LogInState extends State<LogIn> {
                               color: Color(0xFFececf8), borderRadius: BorderRadius.circular(10)
                             ),
                             child: TextField(
-                              obscureText: true,
+                              obscureText: obscureText,
                               controller: passwordController  ,
-                              decoration: InputDecoration(border: InputBorder.none, hintText: "Enter Password", prefixIcon: Icon(Icons.password_outlined),contentPadding: EdgeInsets.only(top: 12)),
+                              decoration: 
+                              InputDecoration(
+                                border: InputBorder.none, hintText: "Enter Password", 
+                                prefixIcon: Icon(Icons.password_outlined),
+                                suffixIcon: IconButton(
+                                onPressed: () =>{ setState(() {
+                                  obscureText = ! obscureText;
+                                })}, icon: Icon(obscureText ? Icons.visibility_off: Icons.visibility),),
+                                contentPadding: EdgeInsets.only(top: 12)),
                             ),
                           ),
                           SizedBox(height: 20,),
