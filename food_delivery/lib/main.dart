@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:food_delivery/pages/login.dart';
+import 'package:food_delivery/service/constants.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +21,7 @@ void main() async{
       ),
     );
   } else{
+    Stripe.publishableKey = publishableKey;
     await Firebase.initializeApp();
   }
 
