@@ -32,7 +32,6 @@ class _BottomnavState extends State<Bottomnav> {
 
     pages=[homePage,orderPage,walletpage,profilePage];
 
-    // TODO: implement initState
     super.initState();
   }
 

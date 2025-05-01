@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery/pages/bottomnav.dart';
-import 'package:food_delivery/pages/home.dart';
 import 'package:food_delivery/pages/signup.dart';
 import 'package:food_delivery/service/widget_support.dart';
 
@@ -28,7 +27,6 @@ class _LogInState extends State<LogIn> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     emailController.addListener(_checkIfInputIsValid);
     passwordController.addListener(_checkIfInputIsValid);

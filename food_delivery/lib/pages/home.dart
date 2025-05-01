@@ -27,7 +27,6 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    // TODO: implement initState
     categories= getCategoryModel();
     pizza = getPizza();
     burger=getBurger();

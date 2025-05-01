@@ -11,7 +11,7 @@ import 'package:random_string/random_string.dart';
 
 class DetailPage extends StatefulWidget {
 
-  String image,name,price;
+  final String image,name,price;
 
   DetailPage({super.key, required this.image, required this.name, required this.price});
 
@@ -40,7 +40,6 @@ class _DetailPageState extends State<DetailPage> {
   void initState() {
     totalPrice=int.parse(widget.price);
     getSharedPrefs();
-    // TODO: implement initState
     super.initState();
   }
 

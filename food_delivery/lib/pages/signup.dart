@@ -30,7 +30,6 @@ class _SignUpState extends State<SignUp> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     nameController.addListener(_checkIfInputIsValid);
     emailController.addListener(_checkIfInputIsValid);
