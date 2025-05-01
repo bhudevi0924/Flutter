@@ -6,6 +6,7 @@ import 'package:food_delivery/service/database_methods.dart';
 import 'package:food_delivery/service/shared_pref.dart';
 import 'package:food_delivery/service/widget_support.dart';
 import 'package:random_string/random_string.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -63,14 +64,18 @@ class _SignUpState extends State<SignUp> {
         await SharedPref().saveUserId(id);
         await DatabaseMethods().addUserDetails(userInfoMap, id);
 
-        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.green,
             content: Text("Registered Successfully.",style: TextStyle(fontSize: 18),)
             ));
-        Navigator.push(context, MaterialPageRoute(builder: (context)=> Bottomnav()));
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setBool("isLoggedIn", true);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => Bottomnav()),
+          (route) => false,
+        );
       } on FirebaseAuthException catch(e) {
-          Navigator.pop(context);
         if(e.code=="weak-password") {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             backgroundColor: AppWidget.primaryColor,

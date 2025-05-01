@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery/pages/login.dart';
 import 'package:food_delivery/service/widget_support.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -14,8 +15,14 @@ class _ProfileState extends State<Profile> {
 
   signOut() async{
     await FirebaseAuth.instance.signOut();
-    Navigator.push(context, MaterialPageRoute(builder: (context)=> LogIn()));
     ScaffoldMessenger.of(context).clearSnackBars();
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool("isLoggedIn", false);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LogIn()),
+      (route) => false,
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Loged out!"), duration: Durations.short2,)
     );

@@ -5,6 +5,7 @@ import 'package:food_delivery/pages/bottomnav.dart';
 import 'package:food_delivery/pages/signup.dart';
 import 'package:food_delivery/service/widget_support.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LogIn extends StatefulWidget {
   const LogIn({super.key});
@@ -54,15 +55,19 @@ class _LogInState extends State<LogIn> {
         );
 
         await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
-        Navigator.pop(context);
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setBool("isLoggedIn", true);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => Bottomnav()),
+          (route) => false,
+        );
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             backgroundColor: Colors.green,
             content: 
             Text("Loged in Successfully!", style: TextStyle(fontSize: 18),)
         ));
-        Navigator.push(context, MaterialPageRoute(builder: (context)=> Bottomnav()));
       } on FirebaseAuthException catch(e) {
-        Navigator.pop(context);
         if(e.code=="invalid-credential") {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             backgroundColor: Colors.red,
@@ -71,7 +76,6 @@ class _LogInState extends State<LogIn> {
           ));
         }
       } catch(e) {
-        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.red,
           content: 
