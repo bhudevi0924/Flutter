@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:food_delivery/pages/bottomnav.dart';
 import 'package:food_delivery/pages/signup.dart';
 import 'package:food_delivery/service/widget_support.dart';
+import 'package:local_auth/local_auth.dart';
 
 class LogIn extends StatefulWidget {
   const LogIn({super.key});
@@ -19,6 +21,9 @@ class _LogInState extends State<LogIn> {
   TextEditingController emailController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
 
+  late final LocalAuthentication auth;
+  bool _supportState=false;
+
   void _checkIfInputIsValid() {
     setState(() {
       isButtonEnabled = emailController.text.trim() !="" && passwordController.text.trim()!="";
@@ -30,6 +35,10 @@ class _LogInState extends State<LogIn> {
     super.initState();
     emailController.addListener(_checkIfInputIsValid);
     passwordController.addListener(_checkIfInputIsValid);
+    auth = LocalAuthentication();
+    auth.isDeviceSupported().then((bool isSupported) => setState(() {
+      _supportState = isSupported;
+    }));
   }
 
   userLogin() async{
@@ -68,6 +77,23 @@ class _LogInState extends State<LogIn> {
           content: 
             Text("Error! $e", style: TextStyle(fontSize: 18),)
           ));
+      }
+    }
+
+    Future<void> authenticate() async {
+      try{
+        bool authenticated = await auth.authenticate(
+          localizedReason: "Use fingerprint to open the app.", 
+          options: const AuthenticationOptions(
+            stickyAuth: false,
+            biometricOnly: false
+          ));
+
+          print("authicated $authenticated");
+      } on PlatformException catch (e) {
+        print("Error $e");
+      } catch(e) {
+        print("Error: $e");
       }
     }
 
@@ -150,22 +176,28 @@ class _LogInState extends State<LogIn> {
                           ],),
                           SizedBox(height: 20,),
                           Center(
-                            child: Container(
-                              width: 150,
-                              height: 50,
-                              decoration: BoxDecoration(color: isButtonEnabled? AppWidget.primaryColor:Colors.grey,borderRadius: BorderRadius.circular(20)),
-                              child: GestureDetector(
-                                  onTap: isButtonEnabled? () {
-                                      setState(() {
-                                        email=emailController.text.trim();
-                                        password=passwordController.text.trim();
-                                      });
-                                      userLogin();
-                                  }: null,
-                                  child: Center(
-                                    child: Text("Log In",style: AppWidget.boldTextFieldStyles(),)
-                                  )
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 150,
+                                  height: 50,
+                                  decoration: BoxDecoration(color: isButtonEnabled? AppWidget.primaryColor:Colors.grey,borderRadius: BorderRadius.circular(20)),
+                                  child: GestureDetector(
+                                      onTap: isButtonEnabled? () {
+                                          setState(() {
+                                            email=emailController.text.trim();
+                                            password=passwordController.text.trim();
+                                          });
+                                          userLogin();
+                                      }: null,
+                                      child: Center(
+                                        child: Text("Log In",style: AppWidget.boldTextFieldStyles(),)
+                                      )
+                                    ),
                                 ),
+                                if(_supportState) IconButton(onPressed: authenticate, icon: Icon(Icons.fingerprint, size: 50,))
+                              ],
                             ),
                           ),
                           SizedBox(height: 20,),
