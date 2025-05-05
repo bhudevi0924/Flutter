@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:food_delivery/pages/live_location_page.dart';
 import 'package:food_delivery/service/database_methods.dart';
 import 'package:food_delivery/service/shared_pref.dart';
 import 'package:food_delivery/service/widget_support.dart';
@@ -23,13 +24,15 @@ class _DetailPageState extends State<DetailPage> {
 
   int quantity=1;
   int totalPrice=0;
-  String? userName,id,email;
+  String? userName,id,email,address;
   Map<String, dynamic>? paymentIntent;
+    TextEditingController addressController= new TextEditingController();
   
   getSharedPrefs() async {
     userName = await SharedPref().getUserName();
     id = await SharedPref().getUserId();
     email = await SharedPref().getUserEmail();
+    address = await SharedPref().getUserAddress();
     
     setState(() {
       
@@ -41,10 +44,6 @@ class _DetailPageState extends State<DetailPage> {
     totalPrice=int.parse(widget.price);
     getSharedPrefs();
     super.initState();
-  }
-
-  handleorder() async{
-    
   }
 
   Future<void> makePayment(String amount) async {
@@ -76,6 +75,7 @@ class _DetailPageState extends State<DetailPage> {
           "FoodName": widget.name,
           "FoodImage": widget.image,
           "Status": "Pending",
+          "Address": address ?? addressController.text,
         };
         await DatabaseMethods().addUserOrderDetails(userOrderMap, id!, orderId);
         await DatabaseMethods().addAdminOrderDetails(userOrderMap, orderId);
@@ -149,6 +149,74 @@ class _DetailPageState extends State<DetailPage> {
     return amountInSmallestUnit.toString();
   }
 
+  Future openBox() => showDialog(
+    context: context, 
+    builder: (context) => AlertDialog(
+      content: SingleChildScrollView(
+        child: Container(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(Icons.cancel),
+                  ),
+                  SizedBox(width: 30,),
+                  Text(
+                    "Add the address",
+                    style: TextStyle(
+                      color: Color(0xff008080),
+                      fontWeight: FontWeight.bold, fontSize: 18
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(height: 20,),
+              Text("Add Address"),
+              SizedBox(height: 10,),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black38, width: 2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: TextField(
+                  controller: addressController,
+                  decoration: InputDecoration(
+                    border: InputBorder.none, hintText: "Address"
+                  ),
+                ),
+              ),
+              SizedBox(height: 20,),
+              GestureDetector(
+                onTap: () async{
+                  print("address $address");
+                  await SharedPref().saveUserAddress(addressController.text);
+                  getSharedPrefs();
+                  Navigator.pop(context);
+                },
+                child: Center(
+                  child: Container(
+                    width: 100,
+                    padding: EdgeInsets.all(5),
+                    decoration: BoxDecoration(color: Color(0xff008080), borderRadius: BorderRadius.circular(10)),
+                    child: Center(child: Text("Add", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),)),
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    )
+  );
+
+  handleLocation() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => LiveLocationPage()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: Container(
@@ -220,6 +288,7 @@ class _DetailPageState extends State<DetailPage> {
                 ),
               ),
             ),
+                    IconButton(onPressed: handleLocation , icon: Icon(Icons.location_on_outlined)),
           ],
         ),
         SizedBox(height: 40,),
@@ -238,7 +307,7 @@ class _DetailPageState extends State<DetailPage> {
           ),
           SizedBox(width: 60,),
           GestureDetector(
-            onTap: () => makePayment(totalPrice.toString()),
+            onTap: () => address == null ? openBox() : makePayment(totalPrice.toString()),
             child: Material(
               elevation: 3.0,
               borderRadius: BorderRadius.circular(15),

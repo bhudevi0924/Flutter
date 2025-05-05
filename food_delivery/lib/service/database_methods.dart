@@ -13,4 +13,8 @@ class DatabaseMethods {
   Future addAdminOrderDetails(Map<String, dynamic> userOrderMap, String orderId) async {
     return await FirebaseFirestore.instance.collection("orders").doc(orderId).set(userOrderMap);
   }
+
+  Future<Stream<QuerySnapshot>> getUserOrders(String id) async{
+    return await FirebaseFirestore.instance.collection("users").doc(id).collection("orders").snapshots();
+  }
 }

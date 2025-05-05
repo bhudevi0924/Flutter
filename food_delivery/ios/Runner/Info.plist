@@ -47,5 +47,9 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Why is my app authenticating using face id?</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to show it on the map</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>We use your location to track your position in real-time</string>
 </dict>
 </plist>
