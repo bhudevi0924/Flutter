@@ -59,6 +59,7 @@ class _LogInState extends State<LogIn> {
             Text("Loged in Successfully!", style: TextStyle(fontSize: 18),)
         ));
       } on FirebaseAuthException catch(e) {
+        Navigator.pop(context);
         if(e.code=="invalid-credential") {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             backgroundColor: Colors.red,
@@ -67,10 +68,11 @@ class _LogInState extends State<LogIn> {
           ));
         }
       } catch(e) {
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.red,
           content: 
-            Text("Error! $e", style: TextStyle(fontSize: 18),)
+            Text("Something went wrong! Please try again.", style: TextStyle(fontSize: 18),)
           ));
       }
     }

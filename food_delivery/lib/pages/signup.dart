@@ -58,6 +58,7 @@ class _SignUpState extends State<SignUp> {
           "Name":nameController.text.trim(),
           "Email":emailController.text.trim(),
           "Id": id,
+          "Wallet":"50"
         };
         await SharedPref().saveUserEmail(email);
         await SharedPref().saveUserName(name);
@@ -76,6 +77,7 @@ class _SignUpState extends State<SignUp> {
           (route) => false,
         );
       } on FirebaseAuthException catch(e) {
+        Navigator.pop(context);
         if(e.code=="weak-password") {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             backgroundColor: AppWidget.primaryColor,
@@ -87,6 +89,11 @@ class _SignUpState extends State<SignUp> {
             content: Text("Acount already exists.", style: TextStyle(fontSize: 18,color: Colors.black),)
             ));
         }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: AppWidget.primaryColor,
+            content: Text("Something went wrong! Please try again.",style: TextStyle(fontSize: 18,color: Colors.red),)
+            ));
       }
     }
   }

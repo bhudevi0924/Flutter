@@ -17,4 +17,12 @@ class DatabaseMethods {
   Future<Stream<QuerySnapshot>> getUserOrders(String id) async{
     return await FirebaseFirestore.instance.collection("users").doc(id).collection("orders").snapshots();
   }
+
+  Future <QuerySnapshot> getUserWallet(String email) async {
+    return await FirebaseFirestore.instance.collection("users").where("Email", isEqualTo: email).get();
+  }
+
+  Future updateUserWallet(String id, String amount) async{
+    return await FirebaseFirestore.instance.collection("users").doc(id).update({"Wallet": amount});
+  }
 }

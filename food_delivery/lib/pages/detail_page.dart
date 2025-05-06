@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -24,7 +25,7 @@ class _DetailPageState extends State<DetailPage> {
 
   int quantity=1;
   int totalPrice=0;
-  String? userName,id,email,address;
+  String? userName,id,email,address, wallet;
   Map<String, dynamic>? paymentIntent;
     TextEditingController addressController= new TextEditingController();
   
@@ -39,15 +40,24 @@ class _DetailPageState extends State<DetailPage> {
     });
   }
 
+  getUserWallet() async {
+    await getSharedPrefs();
+    QuerySnapshot querySnapshot= await DatabaseMethods().getUserWallet(email!);
+    wallet = querySnapshot.docs[0]["Wallet"];
+    setState(() {
+    });
+  }
+
   @override
   void initState() {
     totalPrice=int.parse(widget.price);
-    getSharedPrefs();
+    getUserWallet();
     super.initState();
   }
 
-  Future<void> makePayment(String amount) async {
+  Future<void> makeCardPayment(String amount) async {
     try{
+      showDialog(context: context, builder: (context) {return Center(child: CircularProgressIndicator());});
       paymentIntent = await createPaymentIntent(amount, 'INR');
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
@@ -55,7 +65,9 @@ class _DetailPageState extends State<DetailPage> {
           style: ThemeMode.dark,
           merchantDisplayName: 'Bhudevi'
         )).then((value) {});
+      Navigator.pop(context);
       displayPaymentSheet(amount);
+      Navigator.pop(context);
     } catch (e, s) {
       print('exception: $e $s');
     }
@@ -64,26 +76,7 @@ class _DetailPageState extends State<DetailPage> {
   displayPaymentSheet(String amount) async {
     try{
       await Stripe.instance.presentPaymentSheet().then((value) async{
-        String orderId= randomAlphaNumeric(10);
-        Map<String, dynamic> userOrderMap ={
-          "Name": userName,
-          "Id": id,
-          "Email": email,
-          "Quantity": quantity,
-          "TotalPrice": totalPrice,
-          "OrderId": orderId,
-          "FoodName": widget.name,
-          "FoodImage": widget.image,
-          "Status": "Pending",
-          "Address": address ?? addressController.text,
-        };
-        await DatabaseMethods().addUserOrderDetails(userOrderMap, id!, orderId);
-        await DatabaseMethods().addAdminOrderDetails(userOrderMap, orderId);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            backgroundColor: Colors.green,
-              content: Text("Order Placed Successfully.",style: TextStyle(fontSize: 18),)
-            )
-        );
+        handleOrder(amount);
         showDialog(
           context: context, 
           builder: (_) => AlertDialog(
@@ -101,6 +94,7 @@ class _DetailPageState extends State<DetailPage> {
           )
         );
         paymentIntent=null;
+        Navigator.pop(context);
       }).onError((error, stackTrace) {
         print("Error: $error $stackTrace");
       });
@@ -217,6 +211,76 @@ class _DetailPageState extends State<DetailPage> {
     Navigator.push(context, MaterialPageRoute(builder: (context) => LiveLocationPage()));
   }
 
+  makeWalletpayment(String amount) async{
+    handleOrder(amount);
+    int userWalletAmount = int.parse(wallet!) - int.parse(amount);
+    await DatabaseMethods().updateUserWallet(id!, userWalletAmount.toString());
+    Navigator.pop(context);
+  }
+
+  handleOrder(String amount) async{
+    try{
+      showDialog(context: context, barrierDismissible: false, builder: (BuildContext context) {
+        return Center(child: CircularProgressIndicator());
+      });
+      String orderId= randomAlphaNumeric(10);
+        Map<String, dynamic> userOrderMap ={
+          "Name": userName,
+          "Id": id,
+          "Email": email,
+          "Quantity": quantity,
+          "TotalPrice": totalPrice,
+          "OrderId": orderId,
+          "FoodName": widget.name,
+          "FoodImage": widget.image,
+          "Status": "Pending",
+          "Address": address ?? addressController.text,
+        };
+        await DatabaseMethods().addUserOrderDetails(userOrderMap, id!, orderId);
+        await DatabaseMethods().addAdminOrderDetails(userOrderMap, orderId);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                backgroundColor: Colors.green,
+                  content: Text("Order Placed Successfully.",style: TextStyle(fontSize: 18),)
+                )
+            );
+        Navigator.pop(context);
+    } catch(e) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                backgroundColor: Colors.green,
+                  content: Text("Somwthing went wrong! Try again.",style: TextStyle(fontSize: 18),)
+                )
+            );
+    }
+  }
+
+  Future openPaymnetDialog(String amount) => showDialog(context: context, builder: (context) => AlertDialog(
+    content: SingleChildScrollView(
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () => makeCardPayment(amount),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: 40,
+              decoration: BoxDecoration(color: AppWidget.primaryColor,borderRadius: BorderRadius.circular(10)),
+              child: Center(child: Text("Pay Using Card", style: AppWidget.boldTextFieldStyles(),)),
+            ),
+          ),
+          SizedBox(height: 20,),
+          GestureDetector(
+            onTap: () => makeWalletpayment(amount),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: 40,
+              decoration: BoxDecoration(color: AppWidget.primaryColor,borderRadius: BorderRadius.circular(10)),
+              child: Center(child: Text("Pay Using Wallet", style: AppWidget.boldTextFieldStyles(),)),
+            ),
+          )
+        ],
+      ),
+    ),
+  ));
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: Container(
@@ -307,7 +371,7 @@ class _DetailPageState extends State<DetailPage> {
           ),
           SizedBox(width: 60,),
           GestureDetector(
-            onTap: () => address == null ? openBox() : makePayment(totalPrice.toString()),
+            onTap: () => address == null ? openBox() : openPaymnetDialog(totalPrice.toString()),
             child: Material(
               elevation: 3.0,
               borderRadius: BorderRadius.circular(15),

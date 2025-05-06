@@ -48,7 +48,7 @@ class _BottomnavState extends State<Bottomnav> {
           setState(() {
             currentIndex = index;
           });
-          if(index !=0) {
+          if(index==3) {
             ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('This feature is currently disabled.')),
           );
