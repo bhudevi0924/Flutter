@@ -96,7 +96,7 @@ class _OrderState extends State<Order> {
                     ),
                   ),
                 );
-        }) : Container();
+        }) : Center(child: Container(child: Text("No orders yet!", style: AppWidget.boldTextFieldStyles(),),));
     });
   }
 

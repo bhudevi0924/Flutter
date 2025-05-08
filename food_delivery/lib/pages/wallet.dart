@@ -8,6 +8,7 @@ import 'package:food_delivery/service/database_methods.dart';
 import 'package:food_delivery/service/shared_pref.dart';
 import 'package:food_delivery/service/widget_support.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class Wallet extends StatefulWidget {
   const Wallet({super.key});
@@ -21,7 +22,7 @@ class _WalletState extends State<Wallet> {
   String? email, wallet, id, amount;
   Map<String, dynamic>? paymentIntent;
   TextEditingController amountController= new TextEditingController();
-  bool isButtonEnabled=false;
+  Stream? transactions; 
 
   getSharedPrefs() async {
     email = await SharedPref().getUserEmail();
@@ -35,6 +36,7 @@ class _WalletState extends State<Wallet> {
     await getSharedPrefs();
     QuerySnapshot querySnapshot= await DatabaseMethods().getUserWallet(email!);
     wallet = querySnapshot.docs[0]["Wallet"];
+    transactions = await DatabaseMethods().getUserTransactions(id!);
     setState(() {
     });
   }
@@ -70,8 +72,16 @@ class _WalletState extends State<Wallet> {
   displayPaymentSheet(String amount) async {
     try{
       await Stripe.instance.presentPaymentSheet().then((value) async{
+        DateTime now= DateTime.now();
+        String formattedDate= DateFormat("dd MMM").format(now);
+        Map<String,dynamic> userTransactionMap = {
+          "Amount":amount,
+          "Date": formattedDate,
+          "Type": "Credit"
+        };
         int totalAmount = int.parse(amount) + int.parse(wallet!); 
         await DatabaseMethods().updateUserWallet(id!,totalAmount.toString());
+        await DatabaseMethods().addUserTransactionDetails(userTransactionMap, id!);
         Navigator.pop(context);
         await getUserWallet();
         showDialog(
@@ -206,7 +216,7 @@ class _WalletState extends State<Wallet> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: wallet==null ? Center(child: CircularProgressIndicator()) :Container(
+    return Scaffold(body: Container(
       margin: EdgeInsets.only(top: 20),
       child: Column(children: [
         Row(
@@ -291,6 +301,22 @@ class _WalletState extends State<Wallet> {
                     decoration: BoxDecoration(color: AppWidget.primaryColor, borderRadius: BorderRadius.circular(5)),
                     child: Center(child: Text("Add Other Amount", style: AppWidget.boldTextFieldStyles(),)),
                   ),
+                ),
+                SizedBox(height: 20,),
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.only(left: 10, right: 10),
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20) )),
+                    child: Column(
+                      children: [
+                        Container(
+                          height: MediaQuery.of(context).size.height/1.5,
+                          // child: allTransactions()
+                        ),
+                      ],
+                    )
+                  ),
                 )
               ],
             ),
@@ -298,5 +324,30 @@ class _WalletState extends State<Wallet> {
         )
       ],),
     ),);
+  }
+
+  Widget allTransactions() {
+    return StreamBuilder(stream: transactions, builder: (context, AsyncSnapshot snapshot) {
+      return snapshot.hasData ? 
+        ListView.builder(
+          itemCount: snapshot.data.docs.length,
+          itemBuilder: (context, index) {
+            DocumentSnapshot ds= snapshot.data.doc[index];
+            return Container(
+                          margin: EdgeInsets.all(15),
+                          height: 50,
+                          decoration: BoxDecoration(color: Color(0xFFececf8)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text(ds["Amount"], style: AppWidget.boldTextFieldStyles(),),
+                              Text(ds["Date"], style: AppWidget.boldTextFieldStyles(),),
+                              Text(ds["Type"], style: AppWidget.boldTextFieldStyles(),)
+                            ],
+                          ),
+                        );
+          })
+       : Center(child: Container(child: Text("No Transactions!"),));
+    });
   }
 }

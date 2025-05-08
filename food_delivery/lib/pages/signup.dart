@@ -58,7 +58,7 @@ class _SignUpState extends State<SignUp> {
           "Name":nameController.text.trim(),
           "Email":emailController.text.trim(),
           "Id": id,
-          "Wallet":"50"
+          "Wallet":"0"
         };
         await SharedPref().saveUserEmail(email);
         await SharedPref().saveUserName(name);
@@ -67,6 +67,7 @@ class _SignUpState extends State<SignUp> {
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.green,
+          duration: Durations.short2,
             content: Text("Registered Successfully.",style: TextStyle(fontSize: 18),)
             ));
         final prefs = await SharedPreferences.getInstance();

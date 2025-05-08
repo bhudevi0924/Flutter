@@ -9,6 +9,7 @@ import 'package:food_delivery/service/database_methods.dart';
 import 'package:food_delivery/service/shared_pref.dart';
 import 'package:food_delivery/service/widget_support.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:random_string/random_string.dart';
 
 class DetailPage extends StatefulWidget {
@@ -214,7 +215,15 @@ class _DetailPageState extends State<DetailPage> {
   makeWalletpayment(String amount) async{
     handleOrder(amount);
     int userWalletAmount = int.parse(wallet!) - int.parse(amount);
+    DateTime now= DateTime.now();
+        String formattedDate= DateFormat("dd MMM").format(now);
+        Map<String,dynamic> userTransactionMap = {
+          "Amount":amount,
+          "Date": formattedDate,
+          "Type": "Debit"
+        };
     await DatabaseMethods().updateUserWallet(id!, userWalletAmount.toString());
+    await DatabaseMethods().addUserTransactionDetails(userTransactionMap, id!);
     Navigator.pop(context);
   }
 

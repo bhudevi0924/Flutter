@@ -55,6 +55,7 @@ class _LogInState extends State<LogIn> {
         );
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             backgroundColor: Colors.green,
+            duration: Durations.short2,
             content: 
             Text("Loged in Successfully!", style: TextStyle(fontSize: 18),)
         ));

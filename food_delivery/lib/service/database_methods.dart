@@ -25,4 +25,12 @@ class DatabaseMethods {
   Future updateUserWallet(String id, String amount) async{
     return await FirebaseFirestore.instance.collection("users").doc(id).update({"Wallet": amount});
   }
+
+  Future addUserTransactionDetails(Map<String, dynamic> userTransactionMap, String id) async {
+    return await FirebaseFirestore.instance.collection("users").doc(id).collection("transactions").add(userTransactionMap);
+  }
+
+  Future<Stream<QuerySnapshot>> getUserTransactions(String id) async{
+    return await FirebaseFirestore.instance.collection("users").doc(id).collection("transactions").snapshots();
+  }
 }
