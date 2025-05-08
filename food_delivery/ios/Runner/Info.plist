@@ -51,5 +51,16 @@
 	<string>We need your location to show it on the map</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>We use your location to track your position in real-time</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>NSPushNotificationUsageDescription</key>
+	<string>Allow to send notifications</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This identifier will be used to deliver personalized ads to you.</string>
 </dict>
 </plist>

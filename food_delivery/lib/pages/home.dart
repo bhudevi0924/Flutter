@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:food_delivery/main.dart';
 import 'package:food_delivery/model/burger_model.dart';
 import 'package:food_delivery/model/category_model.dart';
 import 'package:food_delivery/model/chinese_model.dart';
@@ -9,6 +11,8 @@ import 'package:food_delivery/service/category_data.dart';
 import 'package:food_delivery/service/chinese_data.dart';
 import 'package:food_delivery/service/pizza_data.dart';
 import 'package:food_delivery/service/widget_support.dart';
+import 'dart:js' as js;
+
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -35,6 +39,40 @@ class _HomeState extends State<Home> {
   }
 
 
+  Future<void> showLocalNotification() async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'high_importance_channel', // Must match the channel ID
+      'High Importance Notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Test Notification',
+      'This is the notification body.',
+      notificationDetails,
+    );
+  }
+
+//if we want to show local notifications on web (as local notification doesn't support web.)
+// void showWebNotification() {
+//   js.context.callMethod('eval', ["""
+//     Notification.requestPermission().then(function(result) {
+//       if (result === 'granted') {
+//         new Notification('Hello from Flutter Web!', {
+//           body: 'This is a browser notification.',
+//           icon: 'https://yourdomain.com/icon.png'
+//         });
+//       }
+//     });
+//   """]);
+// }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,9 +91,12 @@ class _HomeState extends State<Home> {
           ),
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.asset("images/girl.png", height:60,width: 60,fit: BoxFit.contain,)),
+            child: GestureDetector(
+              onTap: () => showLocalNotification(),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset("images/girl.png", height:60,width: 60,fit: BoxFit.contain,)),
+            ),
           ),
 
         ],),
