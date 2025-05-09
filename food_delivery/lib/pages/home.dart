@@ -11,7 +11,6 @@ import 'package:food_delivery/service/category_data.dart';
 import 'package:food_delivery/service/chinese_data.dart';
 import 'package:food_delivery/service/pizza_data.dart';
 import 'package:food_delivery/service/widget_support.dart';
-import 'dart:js' as js;
 
 
 class Home extends StatefulWidget {
